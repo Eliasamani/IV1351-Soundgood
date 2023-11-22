@@ -1,5 +1,3 @@
-
-sql_script = """
 -- ENUM types definition
 CREATE TYPE lesson_type AS ENUM ('individual', 'group', 'ensemble');
 CREATE TYPE skill_type AS ENUM ('beginner', 'intermediate', 'advanced');
@@ -141,4 +139,3 @@ CREATE TABLE ensemble (
     genre VARCHAR(20),
     PRIMARY KEY (lesson_id)
 );
-"""
