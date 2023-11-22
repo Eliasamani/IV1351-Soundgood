@@ -1,5 +1,3 @@
-
-sql_script = """
 -- ENUM types definition
 CREATE TYPE lesson_type AS ENUM ('individual', 'group', 'ensemble');
 CREATE TYPE skill_type AS ENUM ('beginner', 'intermediate', 'advanced');
@@ -39,7 +37,7 @@ CREATE TABLE classroom (
 
 -- Table lesson
 CREATE TABLE lesson (
-    id SERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY, 
     date DATE,
     start_time INT,
     duration INT,
@@ -84,14 +82,14 @@ CREATE TABLE rental_record (
     id SERIAL PRIMARY KEY,
     rental_period DATE,
     rental_price INT,
-    student_id SERIAL REFERENCES student(id),
+    student_id SERIAL REFERENCES student(id) ON DELETE SET NULL,
     rental_instruments_id SERIAL REFERENCES rental_instruments(id)
 );
 
 -- Table lesson_attendees
 CREATE TABLE lesson_attendees (
-    student_id SERIAL REFERENCES student(id),
-    lesson_id SERIAL REFERENCES lesson(id),
+    student_id SERIAL REFERENCES student(id)  ON DELETE CASCADE,
+    lesson_id SERIAL REFERENCES lesson(id)  ON DELETE CASCADE,
     PRIMARY KEY (student_id, lesson_id)
 );
 
@@ -99,7 +97,7 @@ CREATE TABLE lesson_attendees (
 CREATE TABLE instructor_instruments (
     id SERIAL PRIMARY KEY,
     instruments_id SERIAL REFERENCES instruments(id),
-    instructor_id SERIAL REFERENCES instructor(id)
+    instructor_id SERIAL REFERENCES instructor(id)  ON DELETE CASCADE
 );
 
 -- Table contact_person
@@ -111,15 +109,15 @@ CREATE TABLE contact_person (
 
 -- Table student_relations
 CREATE TABLE student_relations (
-    student_id SERIAL REFERENCES student(id),
-    contact_id SERIAL REFERENCES contact_person(id),
+    student_id SERIAL REFERENCES student(id) ON DELETE CASCADE,
+    contact_id SERIAL REFERENCES contact_person(id) ,
     PRIMARY KEY (student_id, contact_id)
 );
 
 -- Table sibling_relations
 CREATE TABLE sibling_relations (
     id SERIAL PRIMARY KEY,
-    student_id SERIAL REFERENCES student(id),
+    student_id SERIAL REFERENCES student(id)  ON DELETE CASCADE,
     sibling_student_id SERIAL REFERENCES student(id)
 );
 
@@ -141,4 +139,3 @@ CREATE TABLE ensemble (
     genre VARCHAR(20),
     PRIMARY KEY (lesson_id)
 );
-"""
