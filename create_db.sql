@@ -138,4 +138,4 @@ CREATE TABLE ensemble (
     attendees INT,
     genre VARCHAR(20),
     PRIMARY KEY (lesson_id)
-);
+); 
