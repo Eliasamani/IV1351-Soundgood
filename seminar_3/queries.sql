@@ -45,3 +45,21 @@ WHERE l.date >= date_trunc('month', CURRENT_DATE) -- Start of current month
   AND l.date < (date_trunc('month', CURRENT_DATE) + interval '1 month') -- End of current month
 GROUP BY i.id, p.first_name, p.last_name
 ORDER BY No_of_Lessons DESC
+
+
+
+
+
+
+
+
+
+
+SELECT TO_CHAR(date, 'Day') AS Day, genre, CASE 
+    WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
+    WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
+    ELSE 'Many Seats'
+  END AS Free_Seats FROM ensemble e
+JOIN lesson l ON e.lesson_id = l.id
+WHERE l.date >= date_trunc('week', CURRENT_DATE) -- Start of current week
+  AND l.date < (date_trunc('week', CURRENT_DATE) + interval '1 week') -- End of current week
