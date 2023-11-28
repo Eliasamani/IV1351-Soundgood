@@ -30,3 +30,18 @@ FROM (
 GROUP BY 
     No_of_Siblings
 ORDER BY No_of_Siblings ASC;
+
+
+
+
+
+
+SELECT
+i.id, p.first_name, p.last_name, COUNT(*) as No_of_Lessons
+from instructor i
+JOIN person p ON i.person_id = p.id
+JOIN lesson l ON i.id = l.instructor_id
+WHERE l.date >= date_trunc('month', CURRENT_DATE) -- Start of current month
+  AND l.date < (date_trunc('month', CURRENT_DATE) + interval '1 month') -- End of current month
+GROUP BY i.id, p.first_name, p.last_name
+ORDER BY No_of_Lessons DESC
