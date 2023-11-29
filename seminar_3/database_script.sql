@@ -1,6 +1,6 @@
 -- ENUM types definition
-CREATE TYPE lesson_type AS ENUM ('individual', 'group', 'ensemble');
-CREATE TYPE skill_type AS ENUM ('beginner', 'intermediate', 'advanced');
+CREATE TYPE lesson_type AS ENUM ('Individual', 'Group', 'Ensemble');
+CREATE TYPE skill_level AS ENUM ('Beginner', 'Intermediate', 'Advanced');
 
 -- Table creation for 'person'
 CREATE TABLE person (
@@ -108,7 +108,7 @@ CREATE TABLE price_scheme (
  sibling_discount_eligibility BOOLEAN,
  instructor_fee INT,
  lesson_type lesson_type NOT NULL,
- skill_type skill_type NOT NULL
+ skill_level skill_level NOT NULL
 );
 
 -- Table creation for 'lesson'
