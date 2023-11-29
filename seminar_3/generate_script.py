@@ -2,11 +2,10 @@ from datetime import datetime, timedelta
 from faker import Faker
 import random
 
-nr_of_students = 100
-nr_of_contacts = 100
+nr_of_students = 300
 nr_of_instructors = 20
 nr_of_classrooms = 10
-max_siblings = 2
+max_siblings = 3
 discount = 0
 year_range = range(2018, 2024)
 min_lessons = 20
@@ -14,48 +13,6 @@ max_lessons = 40
 
 # Set the locale to Swedish
 fake = Faker('sv_SE')
-
-generated_names = set()
-def unique_name():
-    while True:
-        first_name = fake.first_name()
-        last_name = fake.last_name()
-        full_name = first_name + " " + last_name
-        if full_name not in generated_names:
-            generated_names.add(full_name)
-            return first_name, last_name
-
-def create_younger():
-    first_name, last_name = unique_name()
-    personal_number = fake.ssn(min_age=13, max_age=25, long=False, dash=True)
-    phone = fake.phone_number()
-    email = first_name.lower() + "." + last_name.lower() + "@" + fake.free_email_domain()
-    address = fake.street_address()
-    city = fake.city()
-    zip_code = fake.postcode()
-    return (first_name, last_name, personal_number, phone, email, address, city, zip_code)
-
-def create_older():
-    first_name, last_name = unique_name()
-    personal_number = fake.ssn(min_age=40, max_age=60, long=False, dash=True)
-    phone = fake.phone_number()
-    email = first_name.lower() + "." + last_name.lower() + "@" + fake.free_email_domain()
-    street = fake.street_address()
-    city = fake.city()
-    zip = fake.postcode()
-    return (first_name, last_name, personal_number, phone, email, street, city, zip)
-
-def create_classroom():
-    person_capacity = fake.random_int(min=3, max=30)
-    street = fake.street_address()
-    city = fake.city()
-    zip = fake.postcode()
-    return (person_capacity, street, city, zip)
-
-students = [create_younger() for student in range(nr_of_students)]
-contacts = [create_older() for contact in range(nr_of_contacts)]
-instructors = [create_older() for instructor in range(nr_of_instructors)]
-classrooms = [create_classroom() for classroom in range(nr_of_classrooms)]
 
 # List of possible relations
 relations = [
@@ -130,30 +87,112 @@ ensemble_genres = [
     'Pop'
 ]
 
-# Function to randomly create sibling relations
-def create_sibling_relations(nr_of_students, max_siblings):
-    sibling_counts = {i: 0 for i in range(1, nr_of_students + 1)}
+generated_names = set()
+def generate_unique_email(first_name, last_name):
+    # Generate a random number or timestamp
+    unique_identifier = str(random.randint(100, 999))
+    domain = fake.free_email_domain()
+    email = f"{first_name.lower()}.{last_name.lower()}{unique_identifier}@{domain}"
+    return email
+
+def create_person():
+    first_name = fake.first_name()
+    last_name = fake.last_name()
+    personal_number = fake.ssn(min_age=40, max_age=60, long=False, dash=True)
+    phone = fake.phone_number()
+    email = generate_unique_email(first_name, last_name)
+    street = fake.street_address()
+    city = fake.city()
+    zip = fake.postcode()
+    return (first_name, last_name, personal_number, phone, email, street, city, zip)
+
+def create_classroom():
+    person_capacity = fake.random_int(min=3, max=30)
+    street = fake.street_address()
+    city = fake.city()
+    zip = fake.postcode()
+    return (person_capacity, street, city, zip)
+
+def create_contact_person(last_name):
+    is_parent = bool(random.getrandbits(1)) # Randomly decide if the contact person is a parent
+
+    first_name = fake.first_name()
+    last_name = last_name if is_parent else fake.last_name()
+    personal_number = fake.ssn(min_age=30, max_age=60, long=False, dash=True)
+    phone = fake.phone_number()
+    email = generate_unique_email(first_name, last_name)
+    street = fake.street_address()
+    city = fake.city()
+    zip_code = fake.postcode()
+    
+    relation = "Parent" if is_parent else random.choice(relations)
+    
+    return (
+        (first_name, last_name, personal_number, phone, email, street, city, zip_code),
+        (relation)
+    )
+
+def create_family(siblings_count, last_name):
+    siblings = []
+    for _ in range(siblings_count):
+        first_name = fake.first_name()
+        personal_number = fake.ssn(min_age=14, max_age=30, long=False, dash=True)
+        phone = fake.phone_number()
+        email = generate_unique_email(first_name, last_name)
+        address = fake.street_address()
+        city = fake.city()
+        zip_code = fake.postcode()
+        siblings.append((f"'{first_name}'", f"'{last_name}'", f"'{personal_number}'", 
+        f"'{phone}'", f"'{email}'", f"'{address}'", f"'{city}'", f"'{zip_code}'"))
+    return siblings
+
+def distribute_students_to_families(total_students, max_siblings_per_family):
+    families = []
+    contacts = []
+    while total_students > 0:
+        siblings_count = random.randint(1, min(max_siblings_per_family, total_students))
+        last_name = fake.last_name()
+        family = create_family(siblings_count, last_name)
+        families.append(family)
+
+        # Create one contact person per family
+        contact = create_contact_person(last_name)
+        contacts.append(contact)
+
+        total_students -= siblings_count
+    return families, contacts
+
+families, contacts = distribute_students_to_families(nr_of_students, max_siblings)
+students = [student for family in families for student in family]
+instructors = [create_person() for instructor in range(nr_of_instructors)]
+classrooms = [create_classroom() for classroom in range(nr_of_classrooms)]
+
+def create_sibling_relations(families):
     sibling_relations = []
-
-    for student_id in range(1, nr_of_students + 1):
-        # Randomly decide how many siblings this student will have, without exceeding the max
-        nr_of_siblings = random.randint(0, max_siblings - sibling_counts[student_id])
-        possible_siblings = [i for i in range(1, nr_of_students + 1) if i != student_id and sibling_counts[i] < max_siblings]
-
-        for sibling in range(nr_of_siblings):
-            if possible_siblings:
-                sibling_id = random.choice(possible_siblings)
-                # Add bidirectional relations
-                sibling_relations.append((student_id, sibling_id))
-                sibling_relations.append((sibling_id, student_id))
-                # Update counts
-                sibling_counts[student_id] += 1
-                sibling_counts[sibling_id] += 1
-                # If the sibling has now reached the max, remove them from the pool of possible siblings
-                if sibling_counts[sibling_id] == max_siblings:
-                    possible_siblings.remove(sibling_id)
-
+    student_id = 1
+    for family in families:
+        for _ in family:
+            for sibling in family:
+                if sibling != _:
+                    sibling_relations.append((student_id, student_id + family.index(sibling)))
+            student_id += 1
     return sibling_relations
+
+sibling_relations = create_sibling_relations(families)
+
+def create_student_relations(families):
+    student_relations = []
+    student_id = 1
+    contact_person_id = 1
+
+    for family in families:
+        # Each family has a contact person, so assign the first student of each family to the contact person
+        for _ in family:
+            student_relations.append((student_id, contact_person_id))
+            student_id += 1  # Move to the next student
+        contact_person_id += 1  # Move to the next contact person after assigning the whole family
+
+    return student_relations
 
 def generate_instructor_instruments(nr_of_instructors, instrument_ids):
     instructor_instruments = {}
@@ -227,15 +266,22 @@ with open('data_script.sql', 'w', encoding='utf-8') as file:
 
     file.write("INSERT INTO person (first_name, last_name, personal_number, phone_number, email_address, street, city, zip)\n")
     file.write("VALUES\n")
+
+    # Insert students
     file.write(f"-- {nr_of_students} students\n")
     for student in students:
-        file.write(f" {student},\n")
-    file.write(f"-- {nr_of_contacts} contacts\n")
+        student_values = ", ".join(map(str, student))  # Convert each element to string and join
+        file.write(f" ({student_values}),\n")
+
+    # Insert contacts
+    file.write(f"-- {len(contacts)} contacts\n")
     for contact in contacts:
-        file.write(f"{contact},\n")
+        file.write(f" {contact[0]},\n")
+    
+    # Insert instructors
     file.write(f"-- {nr_of_instructors} instructors\n")
     for instructor in instructors:
-        file.write(f"{instructor},\n")
+        file.write(f" {instructor},\n")
     file.seek(file.tell() - 3, 0)  # Overwrite the last comma
     file.write(";\n\n")
 
@@ -243,18 +289,16 @@ with open('data_script.sql', 'w', encoding='utf-8') as file:
     file.write(" INSERT INTO student (person_id)\n")
     file.write(" SELECT id FROM person WHERE id BETWEEN 1 AND " + str(nr_of_students) + ";\n\n")
 
-    contact_id = nr_of_students + 1
-    file.write("-- Insert " + str(nr_of_contacts) + " contact persons with random relations\n")
-    file.write("INSERT INTO contact_person (relation, person_id)\n")
-    file.write("VALUES\n")
+    file.write("-- Insert contacts\n")
+    file.write("INSERT INTO contact_person (relation, person_id)\nVALUES\n")
+    contact_id = len(students) + 1
     for contact in contacts:
-        relation = random.choice(relations)
-        file.write(f" ('{relation}', {contact_id}),\n")
+        file.write(f" ('{contact[1]}', {contact_id}),\n")  # Insert relation and contact_id
         contact_id += 1
-    file.seek(file.tell() - 3, 0)  # Overwrite the last comma
+    file.seek(file.tell() - 3, 0)
     file.write(";\n\n")
 
-    instructor_id = nr_of_students + nr_of_contacts + 1
+    instructor_id = nr_of_students + len(contacts) + 1
     file.write("-- Insert " + str(nr_of_instructors) + " instructors (person IDs " + str(instructor_id) + "-" + str(instructor_id + nr_of_instructors) + ")\n")
     file.write("INSERT INTO instructor (teaches_ensembles, person_id)\n")
     file.write("VALUES\n")
@@ -264,7 +308,17 @@ with open('data_script.sql', 'w', encoding='utf-8') as file:
     file.seek(file.tell() - 3, 0)  # Overwrite the last comma
     file.write(";\n\n")
 
-    sibling_relations = create_sibling_relations(nr_of_students, max_siblings)
+    student_relations = create_student_relations(families)
+    file.write("-- Create student_relations between students and contact persons\n")
+    file.write("INSERT INTO student_relations (student_id, contact_person_id)\n")
+    file.write("VALUES\n")
+    for relation in student_relations:
+        file.write(f"  ({relation[0]}, {relation[1]}),\n")
+    # Remove the last comma
+    file.seek(file.tell() - 3, 0)  
+    file.write(";\n\n")
+
+    sibling_relations = create_sibling_relations(families)
     file.write("-- Create sibling relations\n")
     file.write("INSERT INTO sibling_relations (student_id, sibling_student_id)\n")
     file.write("VALUES\n")
