@@ -1,19 +1,25 @@
-PREPARE lessons_per_year AS
+--Works
+CREATE VIEW lesson_count_month AS
 SELECT
-  TO_CHAR(date, 'Mon') AS Month,
-  COUNT(*) FILTER (WHERE EXTRACT(YEAR FROM date) = $1) AS Total,
-  COUNT(*) FILTER (WHERE lesson_type = 'individual' AND EXTRACT(YEAR FROM date) = $1) AS Individual,
-  COUNT(*) FILTER (WHERE lesson_type = 'group' AND EXTRACT(YEAR FROM date) = $1) AS Group,
-  COUNT(*) FILTER (WHERE lesson_type = 'ensemble' AND EXTRACT(YEAR FROM date) = $1) AS Ensemble
-FROM lesson
-GROUP BY EXTRACT(YEAR FROM date), TO_CHAR(date, 'Mon')
-ORDER BY EXTRACT(YEAR FROM date), MIN(date);
+  --EXTRACT(YEAR FROM date) AS Year, -- Extracts the year from the date
+  TO_CHAR(date, 'Month') AS Month, -- Formats the date to return the full month name
+  COUNT(*) AS Total,
+  COUNT(*) AS Total,
+  COUNT(CASE WHEN lesson_type = 'Individual' THEN 1 END) AS Individual,
+  COUNT(CASE WHEN lesson_type = 'Group' THEN 1 END) AS Group,
+  COUNT(CASE WHEN lesson_type = 'Ensemble' THEN 1 END) AS Ensemble
+FROM  lesson
+WHERE  EXTRACT(YEAR FROM date) = 2022
+GROUP BY   
+  --EXTRACT(YEAR FROM date), -- Group by year as well for completeness
+  TO_CHAR(date, 'Month'),
+  EXTRACT(MONTH FROM date) -- Extracting the month number for ordering purposes
+ORDER BY  Month;
 
 
 
-
-
-
+--Works
+CREATE VIEW siblings_and_student AS
 SELECT 
     No_of_Siblings, 
     COUNT(*) as Count
@@ -32,10 +38,8 @@ GROUP BY
 ORDER BY No_of_Siblings ASC;
 
 
-
-
-
-
+--Works
+CREATE VIEW lesson_count_type_month AS
 SELECT
 i.id, p.first_name, p.last_name, COUNT(*) as No_of_Lessons
 from instructor i
@@ -47,14 +51,7 @@ GROUP BY i.id, p.first_name, p.last_name
 ORDER BY No_of_Lessons DESC
 
 
-
-
-
-
-
-
-
-
+--ERROR
 SELECT TO_CHAR(date, 'Day') AS Day, genre, CASE 
     WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
     WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
