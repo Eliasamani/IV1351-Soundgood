@@ -50,13 +50,25 @@ WHERE l.date >= date_trunc('month', CURRENT_DATE) -- Start of current month
 GROUP BY i.id, p.first_name, p.last_name
 ORDER BY No_of_Lessons DESC
 
-
---ERROR
-SELECT TO_CHAR(date, 'Day') AS Day, genre, CASE 
-    WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
-    WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
-    ELSE 'Many Seats'
-  END AS Free_Seats FROM ensemble e
-JOIN lesson l ON e.lesson_id = l.id
-WHERE l.date >= date_trunc('week', CURRENT_DATE) -- Start of current week
-  AND l.date < (date_trunc('week', CURRENT_DATE) + interval '1 week') -- End of current week
+--Works with both choice one
+--CREATE VIEW lesson_count_type_month AS
+CREATE MATERIALIZED View lesson_next_week AS
+SELECT
+    --EXTRACT(YEAR FROM l.date) AS Year, -- Extracts the year from the date
+    TO_CHAR(l.date, 'Day') AS Day, -- Gets the day name from the date
+    e.genre,
+    CASE 
+        WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
+        WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
+        ELSE 'Many Seats'
+    END AS "No of Free Seats"
+FROM
+    lesson l
+JOIN
+    ensemble e ON l.id = e.lesson_id
+WHERE
+    l.lesson_type = 'Ensemble' AND
+    EXTRACT(YEAR FROM l.date) = 2023
+ORDER BY
+    e.genre,
+    TO_CHAR(l.date, 'Day'); -- Sorts by genre and then by the weekday
