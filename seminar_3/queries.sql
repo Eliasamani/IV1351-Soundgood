@@ -48,6 +48,7 @@ JOIN lesson l ON i.id = l.instructor_id
 WHERE l.date >= date_trunc('month', CURRENT_DATE) -- Start of current month
   AND l.date < (date_trunc('month', CURRENT_DATE) + interval '1 month') -- End of current month
 GROUP BY i.id, p.first_name, p.last_name
+HAVING COUNT(*) > 0 --filter out instructors who not exceed the minimum threshold. 
 ORDER BY No_of_Lessons DESC
 
 --Works with both choice one
@@ -68,7 +69,8 @@ JOIN
     ensemble e ON l.id = e.lesson_id
 WHERE
     l.lesson_type = 'Ensemble' AND
-    EXTRACT(YEAR FROM l.date) = 2023
+    --EXTRACT(YEAR FROM l.date) = 2023
+    l.date >= CURRENT_DATE AND l.date < CURRENT_DATE + INTERVAL '7 days'
 ORDER BY
     e.genre,
     TO_CHAR(l.date, 'Day'); -- Sorts by genre and then by the weekday
