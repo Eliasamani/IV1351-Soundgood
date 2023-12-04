@@ -5,7 +5,7 @@ DEALLOCATE lessons_per_year;
 --Preparation
 PREPARE lessons_per_year AS
 SELECT
-  EXTRACT(YEAR FROM date) AS "Year",
+  $1 AS "Year",
   TO_CHAR(date, 'Mon') AS "Month",
   COUNT(*) AS Total,
   COUNT(*) FILTER (WHERE lesson_type = 'Individual') AS "Individual",
@@ -13,8 +13,8 @@ SELECT
   COUNT(*) FILTER (WHERE lesson_type = 'Ensemble') AS "Ensemble"
 FROM lesson
 WHERE EXTRACT(YEAR FROM date) = $1
-GROUP BY EXTRACT(YEAR FROM date), TO_CHAR(date, 'Mon')
-ORDER BY EXTRACT(YEAR FROM date), MIN(date);
+GROUP BY "Year", "Month"
+ORDER BY "Year", MIN(date);
 
 --Execution
 EXECUTE lessons_per_year('2023');
