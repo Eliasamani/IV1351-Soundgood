@@ -61,14 +61,15 @@ EXECUTE min_lessons_by_instructor('5');
 
 
 --Query 4
+CREATE MATERIALIZED View lesson_next_week AS
 SELECT 
-    TO_CHAR(date, 'Day') AS Day, 
-    e.genre, 
+    TO_CHAR(date, 'Day') AS "Day",
+    e.genre AS "Genre",
     CASE 
       WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
       WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
       ELSE 'Many Seats'
-  END AS "No of free Seats"
+  END AS "No of Free Seats"
 FROM lesson l JOIN ensemble e ON e.lesson_id = l.id
 WHERE
     l.lesson_type = 'Ensemble' AND
@@ -79,3 +80,5 @@ ORDER BY
     ELSE EXTRACT(DOW FROM l.date)
   END,
   e.genre;
+
+  SELECT * FROM lesson_next_week;
