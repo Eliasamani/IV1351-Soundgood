@@ -1,6 +1,8 @@
 --Query 1
+--If the query is prepared previously, it has to be deallocated before updated
 DEALLOCATE lessons_per_year;
 
+--Preparation
 PREPARE lessons_per_year AS
 SELECT
   EXTRACT(YEAR FROM date) AS "Year",
@@ -14,6 +16,7 @@ WHERE EXTRACT(YEAR FROM date) = $1
 GROUP BY EXTRACT(YEAR FROM date), TO_CHAR(date, 'Mon')
 ORDER BY EXTRACT(YEAR FROM date), MIN(date);
 
+--Execution
 EXECUTE lessons_per_year('2023');
 
 
@@ -39,6 +42,7 @@ ORDER BY No_of_Siblings ASC;
 
 
 --Query 3
+--Same as with query 1, if the query is previously preprated, it has to be deallocated before updated
 DEALLOCATE min_lessons_by_instructor;
 
 PREPARE min_lessons_by_instructor AS
@@ -61,6 +65,7 @@ EXECUTE min_lessons_by_instructor('5');
 
 
 --Query 4
+--Create a materialized view that can be executed at a later stage
 CREATE MATERIALIZED View lesson_next_week AS
 SELECT 
     TO_CHAR(date, 'Day') AS "Day",
@@ -81,4 +86,5 @@ ORDER BY
   END,
   e.genre;
 
+--Execute the materialized view
   SELECT * FROM lesson_next_week;
