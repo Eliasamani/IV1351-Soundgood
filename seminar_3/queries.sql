@@ -3,21 +3,21 @@
 DEALLOCATE lessons_per_year;
 
 --Preparation
-PREPARE lessons_per_year AS
+PREPARE lessons_per_year (int) AS
 SELECT
   $1 AS "Year",
   TO_CHAR(date, 'Mon') AS "Month",
-  COUNT(*) AS Total,
+  COUNT(*) AS "Total",
   COUNT(*) FILTER (WHERE lesson_type = 'Individual') AS "Individual",
   COUNT(*) FILTER (WHERE lesson_type = 'Group') AS "Group",
   COUNT(*) FILTER (WHERE lesson_type = 'Ensemble') AS "Ensemble"
 FROM lesson
 WHERE EXTRACT(YEAR FROM date) = $1
-GROUP BY "Year", "Month"
-ORDER BY "Year", MIN(date);
+GROUP BY "Month"
+ORDER BY MIN(date);
 
 --Execution
-EXECUTE lessons_per_year('2023');
+EXECUTE lessons_per_year(2023);
 
 
 
@@ -45,7 +45,8 @@ ORDER BY No_of_Siblings ASC;
 --Same as with query 1, if the query is previously preprated, it has to be deallocated before updated
 DEALLOCATE min_lessons_by_instructor;
 
-PREPARE min_lessons_by_instructor AS
+--Preparation
+PREPARE min_lessons_by_instructor (int) AS
 SELECT
   i.id as "ID",
   p.first_name as "First Name", 
@@ -60,7 +61,8 @@ GROUP BY i.id, p.first_name, p.last_name
 HAVING COUNT(*) > $1
 ORDER BY "No of Lessons" DESC;
 
-EXECUTE min_lessons_by_instructor('5');
+--Execution
+EXECUTE min_lessons_by_instructor(5);
 
 
 
