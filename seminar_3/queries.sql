@@ -1,5 +1,5 @@
 --Query 1
---If the query is prepared previously, it has to be deallocated before updated
+--If the query is prepared previously, it has to be deallocated
 DEALLOCATE lessons_per_year;
 
 --Preparation
@@ -23,7 +23,7 @@ EXECUTE lessons_per_year(2023);
 
 --Query 2
 SELECT 
-    No_of_Siblings as "No of Siblings", 
+    No_of_Siblings as "No of Siblings",
     COUNT(*) as "Count"
 FROM (
     SELECT 
@@ -42,7 +42,7 @@ ORDER BY No_of_Siblings ASC;
 
 
 --Query 3
---Same as with query 1, if the query is previously preprated, it has to be deallocated before updated
+--Same as with query 1, if the query is previously preprated, it has to be deallocated
 DEALLOCATE min_lessons_by_instructor;
 
 --Preparation
@@ -67,8 +67,11 @@ EXECUTE min_lessons_by_instructor(5);
 
 
 --Query 4
---Create a materialized view that can be executed at a later stage
-CREATE MATERIALIZED View lesson_next_week AS
+--Deletes the view if it exists
+DROP VIEW IF EXISTS lesson_next_week;
+
+--Create a view that can be executed at a later stage
+CREATE VIEW lesson_next_week AS
 SELECT 
     TO_CHAR(date, 'Day') AS "Day",
     e.genre AS "Genre",
