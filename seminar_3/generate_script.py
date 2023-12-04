@@ -2,14 +2,14 @@ from datetime import datetime, timedelta
 from faker import Faker
 import random
 
-nr_of_students = 300
-nr_of_instructors = 20
+nr_of_students = 400
+nr_of_instructors = 30
 nr_of_classrooms = 10
-max_siblings = 3
+max_siblings = 2
 discount = 0
-year_range = range(2018, 2024)
-min_lessons = 20
-max_lessons = 40
+year_range = range(2021, 2024)
+min_lessons = 1000
+max_lessons = 2000
 
 # Set the locale to Swedish
 fake = Faker('sv_SE')
@@ -107,7 +107,7 @@ def create_person():
     return (first_name, last_name, personal_number, phone, email, street, city, zip)
 
 def create_classroom():
-    person_capacity = fake.random_int(min=3, max=30)
+    person_capacity = fake.random_int(min=3, max=15)
     street = fake.street_address()
     city = fake.city()
     zip = fake.postcode()
@@ -150,7 +150,7 @@ def distribute_students_to_families(total_students, max_siblings_per_family):
     families = []
     contacts = []
     while total_students > 0:
-        siblings_count = random.randint(1, min(max_siblings_per_family, total_students))
+        siblings_count = random.randint(1, min(max_siblings_per_family+1, total_students))
         last_name = fake.last_name()
         family = create_family(siblings_count, last_name)
         families.append(family)
@@ -398,14 +398,19 @@ with open('data_script.sql', 'w', encoding='utf-8') as file:
     for lesson_type in lesson_types:
         nr_of_lessons = random.randint(min_lessons, max_lessons)
         for lesson in range(nr_of_lessons):
+            instructor_id = get_instructor_id(lesson_type, None if lesson_type == 'ensemble' else random.choice(instrument_ids))
+            
+            if instructor_id is None:
+                continue  # Skip this lesson as no suitable instructor is available
+
             date = random_date(year_range)
             start_time = random_time()
             duration = random.choice(lesson_durations)
 
             if lesson_type in ['Group', 'Ensemble']:
-                attendees = random.randint(3, 25)  # Generate number of attendees
+                attendees = random.randint(3, 14)
                 min_attendees = random.randint(3, attendees)
-                max_attendees = random.randint(attendees, 25)
+                max_attendees = random.randint(attendees, 14)
                 classroom_id = get_classroom_id(max_attendees)
                 lesson_attendees_info.append((lesson_id, attendees))
 
@@ -419,11 +424,11 @@ with open('data_script.sql', 'w', encoding='utf-8') as file:
 
             skill_level = random.choice(skill_levels)
             price_scheme_id = get_price_scheme_id(lesson_type, skill_level, price_schemes)
-            instructor_id = get_instructor_id(lesson_type, None if lesson_type == 'ensemble' else random.choice(instrument_ids))
             instrument_id = 'NULL' if lesson_type == 'ensemble' else random.choice(instrument_ids)
 
-            file.write(f"  ('{date}', '{start_time}', '{duration}', {classroom_id}, {price_scheme_id}, {instructor_id}, {instrument_id}, '{lesson_type}'),\n")       
+            file.write(f"  ('{date}', '{start_time}', '{duration}', {classroom_id}, {price_scheme_id}, {instructor_id}, {instrument_id}, '{lesson_type}'),\n")
             lesson_id += 1
+
     file.seek(file.tell() - 3, 0)  # Overwrite the last comma
     file.write(";\n\n")
 

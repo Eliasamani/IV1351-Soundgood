@@ -1,19 +1,24 @@
+--Query 1
+DEALLOCATE lessons_per_year;
+
 PREPARE lessons_per_year AS
 SELECT
+  EXTRACT(YEAR FROM date) AS Year,
   TO_CHAR(date, 'Mon') AS Month,
-  COUNT(*) FILTER (WHERE EXTRACT(YEAR FROM date) = $1) AS Total,
-  COUNT(*) FILTER (WHERE lesson_type = 'individual' AND EXTRACT(YEAR FROM date) = $1) AS Individual,
-  COUNT(*) FILTER (WHERE lesson_type = 'group' AND EXTRACT(YEAR FROM date) = $1) AS Group,
-  COUNT(*) FILTER (WHERE lesson_type = 'ensemble' AND EXTRACT(YEAR FROM date) = $1) AS Ensemble
+  COUNT(*) AS Total,
+  COUNT(*) FILTER (WHERE lesson_type = 'Individual') AS Individual,
+  COUNT(*) FILTER (WHERE lesson_type = 'Group') AS Group,
+  COUNT(*) FILTER (WHERE lesson_type = 'Ensemble') AS Ensemble
 FROM lesson
+WHERE EXTRACT(YEAR FROM date) = $1
 GROUP BY EXTRACT(YEAR FROM date), TO_CHAR(date, 'Mon')
 ORDER BY EXTRACT(YEAR FROM date), MIN(date);
 
+EXECUTE lessons_per_year('2023');
 
 
 
-
-
+--Query 2
 SELECT 
     No_of_Siblings, 
     COUNT(*) as Count
@@ -33,28 +38,25 @@ ORDER BY No_of_Siblings ASC;
 
 
 
+--Query 3
+DEALLOCATE min_lessons_by_instructor;
 
-
-
+PREPARE min_lessons_by_instructor AS
 SELECT
-i.id, p.first_name, p.last_name, COUNT(*) as No_of_Lessons
-from instructor i
+  i.id, p.first_name, p.last_name, COUNT(*) as No_of_Lessons
+FROM instructor i
 JOIN person p ON i.person_id = p.id
 JOIN lesson l ON i.id = l.instructor_id
 WHERE l.date >= date_trunc('month', CURRENT_DATE) -- Start of current month
   AND l.date < (date_trunc('month', CURRENT_DATE) + interval '1 month') -- End of current month
 GROUP BY i.id, p.first_name, p.last_name
-ORDER BY No_of_Lessons DESC
+HAVING COUNT(*) > $1
+ORDER BY No_of_Lessons DESC;
+
+EXECUTE min_lessons_by_instructor('3');
 
 
-
-
-
-
-
-
-
-
+--Query 4
 SELECT TO_CHAR(date, 'Day') AS Day, genre, CASE 
     WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
     WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
