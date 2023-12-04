@@ -22,6 +22,11 @@ EXECUTE lessons_per_year(2023);
 
 
 --Query 2
+--Deletes the view if it exists
+DROP VIEW IF EXISTS no_of_siblings;
+
+--Create a view that can be executed at a later stage
+CREATE VIEW no_of_siblings AS
 SELECT 
     No_of_Siblings as "No of Siblings",
     COUNT(*) as "Count"
@@ -39,6 +44,9 @@ GROUP BY
     No_of_Siblings
 ORDER BY No_of_Siblings ASC;
 
+--Execute the view
+  SELECT * FROM no_of_siblings;
+
 
 
 --Query 3
@@ -49,8 +57,8 @@ DEALLOCATE min_lessons_by_instructor;
 PREPARE min_lessons_by_instructor (int) AS
 SELECT
   i.id as "ID",
-  p.first_name as "First Name", 
-  p.last_name as "Last Name", 
+  p.first_name as "First Name",
+  p.last_name as "Last Name",
   COUNT(*) as "No of Lessons"
 FROM instructor i
 JOIN person p ON i.person_id = p.id
@@ -68,11 +76,11 @@ EXECUTE min_lessons_by_instructor(5);
 
 --Query 4
 --Deletes the view if it exists
-DROP VIEW IF EXISTS lesson_next_week;
+DROP VIEW IF EXISTS lessons_next_week;
 
 --Create a view that can be executed at a later stage
-CREATE VIEW lesson_next_week AS
-SELECT 
+CREATE VIEW lessons_next_week AS
+SELECT
     TO_CHAR(date, 'Day') AS "Day",
     e.genre AS "Genre",
     CASE 
@@ -91,5 +99,10 @@ ORDER BY
   END,
   e.genre;
 
---Execute the materialized view
+--Execute the view
+  SELECT * FROM lessons_next_week;
+
+
+--Explain analyze function
+  EXPLAIN ANALYZE
   SELECT * FROM lesson_next_week;
