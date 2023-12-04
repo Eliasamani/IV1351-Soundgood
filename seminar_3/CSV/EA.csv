@@ -1,0 +1,15 @@
+QUERY PLAN
+Subquery Scan on lesson_next_week  (cost=214.25..214.29 rows=3 width=70) (actual time=0.939..0.941 rows=8 loops=1)
+  ->  Sort  (cost=214.25..214.26 rows=3 width=102) (actual time=0.938..0.939 rows=8 loops=1)
+        Sort Key: (CASE WHEN (EXTRACT(dow FROM l.date) = '0'::numeric) THEN '7'::numeric ELSE EXTRACT(dow FROM l.date) END), e.genre
+        Sort Method: quicksort  Memory: 25kB
+        ->  Hash Join  (cost=179.86..214.23 rows=3 width=102) (actual time=0.638..0.901 rows=8 loops=1)
+              Hash Cond: (e.lesson_id = l.id)
+              ->  Seq Scan on ensemble e  (cost=0.00..29.65 rows=1765 width=18) (actual time=0.008..0.124 rows=1765 loops=1)
+              ->  Hash  (cost=179.75..179.75 rows=9 width=8) (actual time=0.607..0.608 rows=8 loops=1)
+                    Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                    ->  Seq Scan on lesson l  (cost=0.00..179.75 rows=9 width=8) (actual time=0.369..0.600 rows=8 loops=1)
+                          Filter: ((lesson_type = 'Ensemble'::lesson_type) AND (date >= CURRENT_DATE) AND (date < (CURRENT_DATE + '7 days'::interval)))
+                          Rows Removed by Filter: 5062
+Planning Time: 0.314 ms
+Execution Time: 0.977 ms
