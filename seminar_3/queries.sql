@@ -56,7 +56,9 @@ ORDER BY No_of_Lessons DESC;
 EXECUTE min_lessons_by_instructor('3');
 
 
+
 --Query 4
+CREATE MATERIALIZED View lesson_next_week AS
 SELECT 
     TO_CHAR(date, 'Day') AS Day, 
     e.genre, 
@@ -75,4 +77,3 @@ ORDER BY
     ELSE EXTRACT(DOW FROM l.date)
   END,
   e.genre;
-
