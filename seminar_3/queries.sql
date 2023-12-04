@@ -61,7 +61,14 @@ SELECT TO_CHAR(date, 'Day') AS Day, genre, CASE
     WHEN e.max_attendees - e.attendees <= 0 THEN 'No Seats'
     WHEN e.max_attendees - e.attendees BETWEEN 1 AND 2 THEN '1 or 2 Seats'
     ELSE 'Many Seats'
-  END AS Free_Seats FROM ensemble e
+  END AS "No of free Seats" FROM ensemble e
 JOIN lesson l ON e.lesson_id = l.id
 WHERE l.date >= date_trunc('week', CURRENT_DATE) -- Start of current week
   AND l.date < (date_trunc('week', CURRENT_DATE) + interval '1 week') -- End of current week
+ORDER BY
+  CASE 
+    WHEN EXTRACT(DOW FROM l.date) = 0 THEN 7
+    ELSE EXTRACT(DOW FROM l.date)
+  END,
+  e.genre;
+
